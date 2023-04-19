@@ -1,8 +1,8 @@
 //
 //  ProfilerViewController.swift
-//  Whatsgram
+//  Telesapp
 //
-//  Created by Trung on 17/04/2023.
+//  Created by Trung on 21/3/2023.
 //
 
 import Foundation
@@ -10,6 +10,7 @@ import Foundation
 import UIKit
 import FirebaseAuth
 class ProfileViewController : UIViewController{
+
     @IBOutlet weak var tableView: UITableView!
     let data = ["Log Out"]
     override func viewDidLoad() {
