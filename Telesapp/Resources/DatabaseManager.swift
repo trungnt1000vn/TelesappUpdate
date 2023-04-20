@@ -141,7 +141,7 @@ extension DatabaseManager {
     public func createNewConversation(with otherUserEmail: String,name: String, firstMessage : Message, completion: @escaping (Bool) -> Void){
         guard let currentEmail = UserDefaults.standard.value(forKey: "email") as? String,
               let currentName = UserDefaults.standard.value(forKey: "name") as? String
-         else{
+        else{
             return
         }
         let safeEmail = DatabaseManager.safeEmail(emailAddress: currentEmail)
@@ -192,16 +192,16 @@ extension DatabaseManager {
             ]
             
             
-           let recipient_newConversationData: [String: Any] = [
-               "id": "conversation_\(firstMessage.messageId)",
-               "other_user_email": safeEmail,
-               "name":  currentName,
-               "latest_message": [
-                   "date":dateString,
-                   "message": message,
-                   "is_read": false
-               ]
-           ]
+            let recipient_newConversationData: [String: Any] = [
+                "id": "conversation_\(firstMessage.messageId)",
+                "other_user_email": safeEmail,
+                "name":  currentName,
+                "latest_message": [
+                    "date":dateString,
+                    "message": message,
+                    "is_read": false
+                ]
+            ]
             //Update recipient conversation entry
             
             self?.database.child("\(otherUserEmail)/conversations").observeSingleEvent(of: .value, with: {
@@ -366,7 +366,7 @@ extension DatabaseManager {
                 var kind: MessageKind?
                 if type == "photo"{
                     guard let imageUrl = URL(string: content),
-                    let placeHolder = UIImage(systemName: "plus")
+                          let placeHolder = UIImage(systemName: "plus")
                     else {
                         return nil
                     }
@@ -375,7 +375,7 @@ extension DatabaseManager {
                 }
                 else if type == "video"{
                     guard let videoUrl = URL(string: content),
-                    let placeHolder = UIImage(systemName: "play")
+                          let placeHolder = UIImage(systemName: "play")
                     else {
                         return nil
                     }
@@ -475,70 +475,117 @@ extension DatabaseManager {
                 }
                 
                 strongSelf.database.child("\(currentEmail)/conversations").observeSingleEvent(of: .value, with: {snapshot in
-                    guard var currentUserConversations = snapshot.value as? [[String: Any]] else{
-                        completion(false)
-                        return
-                    }
-                    
+                    var databaseEntryConversations = [[String: Any]]()
                     let updatedValue: [String: Any] = [
                         "date":dateString,
                         "is_read": false,
                         "message": message
                     ]
-                    
-                    var targetConversation: [String: Any]?
-                    
-                    var position = 0
-                    
-                    for conversationDictionary in currentUserConversations {
-                        if let currentId = conversationDictionary["id"] as? String, currentId == conversation {
-                            targetConversation = conversationDictionary
-                            break
+                    if var currentUserConversations = snapshot.value as? [[String: Any]]{
+                        ///We need to create conversation entry
+                        
+                        var targetConversation: [String: Any]?
+                        
+                        var position = 0
+                        
+                        for conversationDictionary in currentUserConversations {
+                            if let currentId = conversationDictionary["id"] as? String, currentId == conversation {
+                                targetConversation = conversationDictionary
+                                break
+                            }
+                            position += 1
                         }
-                        position += 1
+                        if var targetConversation = targetConversation {
+                            targetConversation["latest_message"] = updatedValue
+                            currentUserConversations[position] = targetConversation
+                            databaseEntryConversations = currentUserConversations
+                        }
+                        else {
+                            let newConversationData: [String: Any] = [
+                                "id":conversation,
+                                "other_user_email": DatabaseManager.safeEmail(emailAddress: otherUserEmail),
+                                "name": name,
+                                "latest_message": updatedValue
+                            ]
+                            currentUserConversations.append(newConversationData)
+                            databaseEntryConversations = currentUserConversations
+                        }
                     }
-                    targetConversation?["latest_message"] = updatedValue
-                    guard let finalConversation = targetConversation else {
-                        completion(false)
-                        return
-                        }
-                    currentUserConversations[position] = finalConversation
-                    strongSelf.database.child("\(currentEmail)/conversations").setValue(currentUserConversations, withCompletionBlock: {error, _ in
+                    else {
+                        let newConversationData: [String: Any] = [
+                            "id":conversation,
+                            "other_user_email": DatabaseManager.safeEmail(emailAddress: otherUserEmail),
+                            "name": name,
+                            "latest_message": updatedValue
+                        ]
+                        databaseEntryConversations = [
+                            newConversationData
+                        ]
+                    }
+                    
+                    strongSelf.database.child("\(currentEmail)/conversations").setValue(databaseEntryConversations, withCompletionBlock: {error, _ in
                         guard error == nil else {
                             completion(false)
                             return
                         }
                         //Update latest message for receipient user
+                        
+                        
                         strongSelf.database.child("\(otherUserEmail)/conversations").observeSingleEvent(of: .value, with: {snapshot in
-                            guard var otherUserConversations = snapshot.value as? [[String: Any]] else{
-                                completion(false)
-                                return
-                            }
-                            
                             let updatedValue: [String: Any] = [
                                 "date":dateString,
                                 "is_read": false,
                                 "message": message
                             ]
+                            var databaseEntryConversations = [[String: Any]]()
                             
-                            var targetConversation: [String: Any]?
-                            
-                            var position = 0
-                            
-                            for conversationDictionary in otherUserConversations {
-                                if let currentId = conversationDictionary["id"] as? String, currentId == conversation {
-                                    targetConversation = conversationDictionary
-                                    break
-                                }
-                                position += 1
-                            }
-                            targetConversation?["latest_message"] = updatedValue
-                            guard let finalConversation = targetConversation else {
-                                completion(false)
+                            guard let currentName = UserDefaults.standard.value(forKey: "name") as? String else {
                                 return
+                            }
+                            if var otherUserConversations = snapshot.value as? [[String: Any]] {
+                                var targetConversation: [String: Any]?
+                                
+                                var position = 0
+                                
+                                for conversationDictionary in otherUserConversations {
+                                    if let currentId = conversationDictionary["id"] as? String, currentId == conversation {
+                                        targetConversation = conversationDictionary
+                                        break
+                                    }
+                                    position += 1
                                 }
-                            otherUserConversations[position] = finalConversation
-                            strongSelf.database.child("\(otherUserEmail)/conversations").setValue(otherUserConversations, withCompletionBlock: {error, _ in
+                                if var targetConversation = targetConversation {
+                                    targetConversation["latest_message"] = updatedValue
+                                    otherUserConversations[position] = targetConversation
+                                    databaseEntryConversations =  otherUserConversations
+                                }
+                                else {
+                                    ///Failed to find current collection
+                                    let newConversationData: [String: Any] = [
+                                        "id":conversation,
+                                        "other_user_email": DatabaseManager.safeEmail(emailAddress: currentEmail),
+                                        "name": currentName,
+                                        "latest_message": updatedValue
+                                    ]
+                                    otherUserConversations.append(newConversationData)
+                                    databaseEntryConversations = otherUserConversations
+                                }
+                            }
+                            else {
+                                ///Current collection does not exist
+                                let newConversationData: [String: Any] = [
+                                    "id":conversation,
+                                    "other_user_email": DatabaseManager.safeEmail(emailAddress: currentEmail),
+                                    "name": currentName,
+                                    "latest_message": updatedValue
+                                ]
+                                databaseEntryConversations = [
+                                    newConversationData
+                                ]
+                            }
+                            
+                            
+                            strongSelf.database.child("\(otherUserEmail)/conversations").setValue(databaseEntryConversations, withCompletionBlock: {error, _ in
                                 guard error == nil else {
                                     completion(false)
                                     return
