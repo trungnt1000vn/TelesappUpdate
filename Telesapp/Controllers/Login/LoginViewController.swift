@@ -35,7 +35,7 @@ private let emailField: UITextField={
     field.keyboardType = UIKeyboardType.emailAddress
     field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 0))
     field.leftViewMode = .always
-    field.backgroundColor = .white
+    field.backgroundColor = .secondarySystemBackground
     return field
 }()
 private let passwordField: UITextField={
@@ -49,14 +49,14 @@ private let passwordField: UITextField={
     field.placeholder = "Password"
     field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 0))
     field.leftViewMode = .always
-    field.backgroundColor = .white
+    field.backgroundColor = .secondarySystemBackground
     field.isSecureTextEntry = true
     return field
 }()
 private let loginButton : UIButton={
     let button = UIButton()
     button.setTitle("Log in", for: .normal)
-    button.setTitleColor(.white, for: .normal)
+    button.setTitleColor(.secondarySystemBackground, for: .normal)
     button.backgroundColor = .link
     button.layer.cornerRadius = 12
     button.layer.masksToBounds = true
@@ -67,7 +67,7 @@ override func viewDidLoad() {
     super.viewDidLoad()
     title = "Login"
         
-    view.backgroundColor = .white
+    view.backgroundColor = .systemBackground
     navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Register", style: .done, target: self , action: #selector(didTapLogin))
     // Do any additional setup after loading the view.
     loginButton.addTarget(self, action: #selector(loginButtonTapped), for: . touchUpInside)

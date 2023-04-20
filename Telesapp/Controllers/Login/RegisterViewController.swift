@@ -38,7 +38,7 @@ class RegisterViewController: UIViewController {
         field.keyboardType = UIKeyboardType.emailAddress
         field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 0))
         field.leftViewMode = .always
-        field.backgroundColor = .white
+        field.backgroundColor = .secondarySystemBackground
         return field
     }()
     private let passwordField: UITextField={
@@ -52,7 +52,7 @@ class RegisterViewController: UIViewController {
         field.placeholder = "Password"
         field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 0))
         field.leftViewMode = .always
-        field.backgroundColor = .white
+        field.backgroundColor = .secondarySystemBackground
         field.isSecureTextEntry = true
         return field
     }()
@@ -67,7 +67,7 @@ class RegisterViewController: UIViewController {
         field.placeholder = "First Name..."
         field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 0))
         field.leftViewMode = .always
-        field.backgroundColor = .white
+        field.backgroundColor = .secondarySystemBackground
         return field
     }()
     private let lastnameField: UITextField={
@@ -81,13 +81,13 @@ class RegisterViewController: UIViewController {
         field.placeholder = "Last Name..."
         field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 0))
         field.leftViewMode = .always
-        field.backgroundColor = .white
+        field.backgroundColor = .secondarySystemBackground
         return field
     }()
     private let registerButton : UIButton={
         let button = UIButton()
         button.setTitle("Register", for: .normal)
-        button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(.secondarySystemBackground, for: .normal)
         button.backgroundColor = .systemGreen
         button.layer.cornerRadius = 12
         button.layer.masksToBounds = true
@@ -99,7 +99,7 @@ class RegisterViewController: UIViewController {
         super.viewDidLoad()
         title = "Login"
             
-        view.backgroundColor = .white
+        view.backgroundColor = .systemBackground
         //navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Register", style: .done, target: self , action: #selector(didTapRegister))
         // Do any additional setup after loading the view.
         registerButton.addTarget(self, action: #selector(registerButtonTapped), for: . touchUpInside)

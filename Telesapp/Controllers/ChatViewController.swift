@@ -11,6 +11,7 @@ import InputBarAccessoryView
 import SDWebImage
 import AVFoundation
 import AVKit
+import CoreLocation
 struct Message: MessageType{
     public var sender: MessageKit.SenderType
     public var messageId: String
@@ -56,7 +57,11 @@ struct Media: MediaItem{
     var placeholderImage: UIImage
     var size: CGSize
 }
-
+struct Location: LocationItem{
+    var location: CLLocation
+    var size: CGSize
+    
+}
 class ChatViewController: MessagesViewController{
     public static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -131,10 +136,25 @@ class ChatViewController: MessagesViewController{
         actionSheet.addAction(UIAlertAction(title: "Audio", style: .default, handler: {
             _ in
         }))
+        actionSheet.addAction(UIAlertAction(title: "Location", style: .default, handler: {
+           [weak self] _ in
+            self?.presentLocationPicker()
+        }))
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         present(actionSheet, animated: true)
     }
-    
+    private func presentLocationPicker(){
+        let vc = LocationPickerViewController()
+        vc.navigationItem.largeTitleDisplayMode = .never
+        vc.completion = {
+            [weak self] selectedCoorindates in
+            let longitude: Double = selectedCoorindates.longitude
+            let latitude: Double = selectedCoorindates.latitude
+            
+            print("long = \(longitude) || lat = \(latitude)")
+        }
+        navigationController?.pushViewController(vc, animated: true)
+    }
     private func presentPhotoInputActionSheet(){
         let actionSheet = UIAlertController(title: "Attach Photo ", message: "What would you like to attach ? ", preferredStyle: .actionSheet)
         actionSheet.addAction(UIAlertAction(title: "Camera", style: .default, handler: {
