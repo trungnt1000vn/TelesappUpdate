@@ -36,6 +36,9 @@ class ProfileViewController : UIViewController{
             guard let strongSelf = self else {
                 return
             }
+            
+            UserDefaults.standard.set(nil, forKey: "email")
+            UserDefaults.standard.set(nil, forKey: "name")
             let actionSheet = UIAlertController(title: "Are you sure want to log out ?", message: "", preferredStyle: .actionSheet)
             actionSheet.addAction(UIAlertAction(title: "Log Out", style: .destructive,handler: {[weak self] _ in
                 guard let strongSelf = self else{
