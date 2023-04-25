@@ -9,12 +9,56 @@ import Foundation
 import Foundation
 import UIKit
 import FirebaseAuth
-class ProfileViewController : UIViewController{
+import SDWebImage
 
+enum ProfileViewModelType{
+    case info, email, logout
+}
+struct ProfileViewModel {
+    let viewModelType:ProfileViewModelType
+    let title:String
+    let handler: (() -> Void)?
+}
+class ProfileViewController : UIViewController{
+    
     @IBOutlet weak var tableView: UITableView!
-    let data = ["Log Out"]
+    var data = [ProfileViewModel]()
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        data.append(ProfileViewModel(viewModelType: .info, title: "Name", handler: nil))
+        data.append(ProfileViewModel(viewModelType: .email, title: "Email", handler: nil))
+        
+        data.append(ProfileViewModel(viewModelType: .logout, title: "Log Out", handler: {
+            [weak self] in
+            guard let strongSelf = self else {
+                return
+            }
+            let actionSheet = UIAlertController(title: "Are you sure want to log out ?", message: "", preferredStyle: .actionSheet)
+            actionSheet.addAction(UIAlertAction(title: "Log Out", style: .destructive,handler: {[weak self] _ in
+                guard let strongSelf = self else{
+                    return
+                }
+                do {
+                    try FirebaseAuth.Auth.auth().signOut()
+                    
+                    let vc = LoginViewController()
+                    let nav = UINavigationController(rootViewController: vc)
+                    nav.modalPresentationStyle = .fullScreen
+                    strongSelf.present(nav,animated: false)
+                }
+                catch {
+                    print("Failed to log out")
+                }
+            }))
+            actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel,handler: nil))
+            strongSelf.present(actionSheet,animated: true)
+            
+
+        }))
+        tableView.register(ProfileTableViewCell.self, forCellReuseIdentifier: ProfileTableViewCell.identifier)
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         tableView.delegate = self
         tableView.dataSource = self
@@ -43,26 +87,15 @@ class ProfileViewController : UIViewController{
         imageView.layer.cornerRadius = imageView.width/2
         headerView.addSubview(imageView)
         
-        StorageManager.shared.downloadURL(for: path, completion: {[weak self]result in
+        StorageManager.shared.downloadURL(for: path, completion: {result in
             switch result{
             case .success(let url):
-                self?.downloadImage(imageView: imageView, url: url)
+                imageView.sd_setImage(with: url, completed: nil)
             case .failure(let error):
                 print("Failed to get download url : \(error)")
             }
         })
         return headerView
-    }
-    func downloadImage(imageView: UIImageView, url: URL){
-        URLSession.shared.dataTask(with: url, completionHandler: {data, _, error in
-            guard let data = data, error == nil else{
-                return
-            }
-            DispatchQueue.main.async {
-                let image = UIImage(data: data)
-                imageView.image = image
-            }
-        }).resume()
     }
 }
 extension ProfileViewController : UITableViewDelegate, UITableViewDataSource{
@@ -70,34 +103,33 @@ extension ProfileViewController : UITableViewDelegate, UITableViewDataSource{
         return data.count
     }
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = data[indexPath.row]
-        cell.textLabel?.textAlignment = .center
-        cell.textLabel?.textColor = .red
+        let viewModel = data[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: ProfileTableViewCell.identifier, for: indexPath) as! ProfileTableViewCell
+        cell.setUp(with: viewModel)
         return cell
     }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        let actionSheet = UIAlertController(title: "Are you sure want to log out ?", message: "", preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title: "Log Out", style: .destructive,handler: {[weak self] _ in
-            guard let strongSelf = self else{
-                return
-            }
-            do {
-                try FirebaseAuth.Auth.auth().signOut()
-                
-                let vc = LoginViewController()
-                let nav = UINavigationController(rootViewController: vc)
-                nav.modalPresentationStyle = .fullScreen
-                strongSelf.present(nav,animated: false)
-            }
-            catch {
-                print("Failed to log out")
-            }
-        }))
-        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel,handler: nil))
-        present(actionSheet,animated: true)
+                data[indexPath.row].handler?()
+        }
+}
+
+class ProfileTableViewCell: UITableViewCell{
+    static let identifier = "ProfileTableViewCell"
+    public func setUp(with viewModel: ProfileViewModel){
+        switch viewModel.viewModelType {
+        case .info:
+            self.textLabel?.textAlignment = .left
+            self.textLabel?.text = "Name : \(UserDefaults.standard.value(forKey: "name") as? String ?? "No Name")"
+        case .email:
+            self.textLabel?.textAlignment = .left
+            self.textLabel?.text = "Email : \(UserDefaults.standard.value(forKey: "email") as? String ?? "Error Email")"
+        case .logout:
+            self.textLabel?.text = "Log Out"
+            self.textLabel?.textColor = .red
+            self.textLabel?.textAlignment = .center
         
+        }
     }
 }

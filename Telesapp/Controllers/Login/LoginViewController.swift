@@ -109,6 +109,16 @@ override func viewDidLayoutSubviews() {
         }
         guard let result = authResult, error == nil else{
             print("Failed to log in user with email: \(email)")
+            let alert = UIAlertController(title: "Failed to log you in", message: "You've entered a wrong email or password !!!", preferredStyle: .alert)
+            let alertActionOK = UIAlertAction(title: "Try Again", style: .default, handler: nil)
+            let alertActionCancel = UIAlertAction(title: "Cancel", style: .destructive, handler: { acting in
+                
+                self?.emailField.text = ""
+                self?.passwordField.text = ""
+            })
+            alert.addAction(alertActionOK)
+            alert.addAction(alertActionCancel)
+            self?.present(alert,animated: true,completion: nil)
             return
         }
         let user = result.user
