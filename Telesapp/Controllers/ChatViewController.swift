@@ -12,57 +12,8 @@ import SDWebImage
 import AVFoundation
 import AVKit
 import CoreLocation
-struct Message: MessageType{
-    public var sender: MessageKit.SenderType
-    public var messageId: String
-    public var sentDate: Date
-    public var kind: MessageKit.MessageKind
-}
-extension MessageKind {
-    var messageKindString: String {
-        switch  self {
-            
-        case .text(_):
-            return "text"
-        case .attributedText(_):
-            return "attributedText"
-        case .photo(_):
-            return "photo"
-        case .video(_):
-            return "video"
-        case .location(_):
-            return "location"
-        case .emoji(_):
-            return "emoji"
-        case .audio(_):
-            return "audio"
-        case .contact(_):
-            return "contact"
-        case .linkPreview(_):
-            return "linkPreview"
-        case .custom(_):
-            return "custom"
-        }
-    }
-}
 
-struct Sender: SenderType{
-    public var photoURL: String
-    public var senderId: String
-    public var displayName: String
-}
-struct Media: MediaItem{
-    var url: URL?
-    var image: UIImage?
-    var placeholderImage: UIImage
-    var size: CGSize
-}
-struct Location: LocationItem{
-    var location: CLLocation
-    var size: CGSize
-    
-}
-class ChatViewController: MessagesViewController{
+final class ChatViewController: MessagesViewController{
     private var senderPhotoURL: URL?
     private var otherUserPhotoURL: URL?
     public static let dateFormatter: DateFormatter = {
@@ -146,7 +97,7 @@ class ChatViewController: MessagesViewController{
         present(actionSheet, animated: true)
     }
     private func presentLocationPicker(){
-        let vc = LocationPickerViewController(coordinates: nil, isPickable: true)
+        let vc = LocationPickerViewController(coordinates: nil)
         vc.title = "Pick Location"
         vc.navigationItem.largeTitleDisplayMode = .never
         vc.completion = {
@@ -522,10 +473,10 @@ extension ChatViewController : MessageCellDelegate {
         switch message.kind {
         case .location(let locationData):
             let coordinates = locationData.location.coordinate
-            let vc = LocationPickerViewController(coordinates: coordinates, isPickable: true)
+            let vc = LocationPickerViewController(coordinates: coordinates)
             vc.title = "Location"
             
-            self.navigationController?.pushViewController(vc, animated: true)
+            navigationController?.pushViewController(vc, animated: true)
         
         default:
             break
@@ -544,7 +495,7 @@ extension ChatViewController : MessageCellDelegate {
                 return
             }
             let vc = PhotoViewerViewController(with: imageUrl)
-            self.navigationController?.pushViewController(vc, animated: true)
+            navigationController?.pushViewController(vc, animated: true)
         case .video(let media):
             guard let videoUrl = media.url else{
                 return

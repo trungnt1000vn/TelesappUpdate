@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 import FirebaseAuth
 import JGProgressHUD
-class LoginViewController: UIViewController {
+final class LoginViewController: UIViewController {
     private let spinner = JGProgressHUD(style: .dark)
 private let scrollView: UIScrollView = {
     let scrollView = UIScrollView()

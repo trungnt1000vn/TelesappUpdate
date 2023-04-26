@@ -11,15 +11,8 @@ import UIKit
 import FirebaseAuth
 import SDWebImage
 
-enum ProfileViewModelType{
-    case info, email, logout
-}
-struct ProfileViewModel {
-    let viewModelType:ProfileViewModelType
-    let title:String
-    let handler: (() -> Void)?
-}
-class ProfileViewController : UIViewController{
+
+final class ProfileViewController : UIViewController{
     
     @IBOutlet weak var tableView: UITableView!
     var data = [ProfileViewModel]()
@@ -123,15 +116,15 @@ class ProfileTableViewCell: UITableViewCell{
     public func setUp(with viewModel: ProfileViewModel){
         switch viewModel.viewModelType {
         case .info:
-            self.textLabel?.textAlignment = .left
-            self.textLabel?.text = "Name : \(UserDefaults.standard.value(forKey: "name") as? String ?? "No Name")"
+            textLabel?.textAlignment = .left
+            textLabel?.text = "Name : \(UserDefaults.standard.value(forKey: "name") as? String ?? "No Name")"
         case .email:
-            self.textLabel?.textAlignment = .left
-            self.textLabel?.text = "Email : \(UserDefaults.standard.value(forKey: "email") as? String ?? "Error Email")"
+            textLabel?.textAlignment = .left
+            textLabel?.text = "Email : \(UserDefaults.standard.value(forKey: "email") as? String ?? "Error Email")"
         case .logout:
-            self.textLabel?.text = "Log Out"
-            self.textLabel?.textColor = .red
-            self.textLabel?.textAlignment = .center
+            textLabel?.text = "Log Out"
+            textLabel?.textColor = .red
+            textLabel?.textAlignment = .center
         
         }
     }

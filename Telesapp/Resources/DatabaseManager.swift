@@ -51,7 +51,10 @@ extension DatabaseManager{
     ///Inserts new user to database
     public func insertUser(with user: ChatAppUser, completion: @escaping(Bool) -> Void){
         database.child(user.safeEmail).setValue(["first name": user.firstName,
-                                                 "last_name": user.lastName], withCompletionBlock:{ error , _ in
+                                                 "last_name": user.lastName], withCompletionBlock:{[weak self] error , _ in
+            guard let strongSelf = self else {
+                return
+            }
             guard error == nil else{
                 print("failed to write to database")
                 completion(false)
@@ -66,7 +69,7 @@ extension DatabaseManager{
              
              ]
              */
-            self.database.child("users").observeSingleEvent(of: .value, with: {
+            strongSelf.database.child("users").observeSingleEvent(of: .value, with: {
                 snapshot in
                 if var usersCollection = snapshot.value as? [[String:String]]{
                     //append to user dictionary
@@ -77,7 +80,7 @@ extension DatabaseManager{
                         ]
                     ]
                     usersCollection.append(contentsOf: newElement)
-                    self.database.child("users").setValue(usersCollection,withCompletionBlock: { error , _ in
+                    strongSelf.database.child("users").setValue(usersCollection,withCompletionBlock: { error , _ in
                         guard error == nil else {
                             completion(false)
                             return
@@ -92,7 +95,7 @@ extension DatabaseManager{
                          "email": user.safeEmail
                         ]
                     ]
-                    self.database.child("users").setValue(newCollection,withCompletionBlock: { error , _ in
+                    strongSelf.database.child("users").setValue(newCollection,withCompletionBlock: { error , _ in
                         guard error == nil else {
                             completion(false)
                             return
