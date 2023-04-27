@@ -18,12 +18,16 @@ final class ChatViewController: MessagesViewController{
     private var otherUserPhotoURL: URL?
     public static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.dateStyle = .medium
+        formatter.dateStyle = .none
         formatter.timeStyle = .long
-        formatter.locale = .current
+        formatter.locale = .none
         return formatter
     }()
-    
+    public static let dateFormatter1: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter
+    }()
     private var conversationId: String?
     
     public var isNewConversation = false

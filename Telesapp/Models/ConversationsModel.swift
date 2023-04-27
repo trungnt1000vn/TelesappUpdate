@@ -14,6 +14,7 @@ struct Conversation {
 
 struct LatestMessage{
     let date: String
+    let time: String
     let text: String
     let isRead: Bool
 }

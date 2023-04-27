@@ -160,7 +160,7 @@ extension ConversationsViewController:UITableViewDelegate,UITableViewDataSource{
     }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let model = conversations[indexPath.row]
+        var model = conversations[indexPath.row]
         openConversation(model)
     }
     
