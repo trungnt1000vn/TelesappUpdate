@@ -161,6 +161,7 @@ extension ConversationsViewController:UITableViewDelegate,UITableViewDataSource{
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         var model = conversations[indexPath.row]
+        DatabaseManager.shared.markConversationAsRead(with: model.id)
         openConversation(model)
     }
     

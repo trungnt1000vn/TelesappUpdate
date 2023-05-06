@@ -9,12 +9,12 @@ struct Conversation {
     let id: String
     let name: String
     let otherUserEmail: String
-    let latestMessage: LatestMessage
+    var latestMessage: LatestMessage
 }
 
 struct LatestMessage{
-    let date: String
-    let time: String
-    let text: String
-    let isRead: Bool
+    var date: String
+    var time: String
+    var text: String
+    var isRead: Bool
 }

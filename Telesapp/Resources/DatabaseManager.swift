@@ -397,7 +397,7 @@ extension DatabaseManager {
                 }
                 else if type == "location"{
                     let locationComponent = content.components(separatedBy: ",")
-                guard let longitude = Double(locationComponent[0]) ,let latitude = Double(locationComponent[1])
+                    guard let longitude = Double(locationComponent[0]) ,let latitude = Double(locationComponent[1])
                     else {
                         return nil
                     }
@@ -698,9 +698,30 @@ extension DatabaseManager {
         })
         
     }
+    func markConversationAsRead(with conversationId: String) {
+        guard let currentEmail = UserDefaults.standard.value(forKey: "email") as? String else {
+            return
+        }
+        
+        let safeEmail = DatabaseManager.safeEmail(emailAddress: currentEmail)
+        database.child("\(safeEmail)/conversations").observeSingleEvent(of: .value, with: { [weak self] snapshot in
+            if var conversations = snapshot.value as? [[String: Any]] {
+                for (index, conversation) in conversations.enumerated() {
+                    if let id = conversation["id"] as? String, id == conversationId {
+                        if let latestMessage = conversations[index]["latest_message"] as? [String: Any] {
+                            var updatedLatestMessage = latestMessage
+                            updatedLatestMessage["is_read"] = true
+                            conversations[index]["latest_message"] = updatedLatestMessage
+                        }
+                        self?.database.child("\(safeEmail)/conversations/\(index)/latest_message/is_read").setValue(true)
+                        return
+                    }
+                }
+            }
+        })
+    }
+
 }
-
-
 
 struct ChatAppUser{
     let firstName: String
