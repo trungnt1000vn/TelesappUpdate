@@ -45,6 +45,7 @@ final class ConversationsViewController: UIViewController {
         guard let email = UserDefaults.standard.value(forKey: "email") as? String else{
             return
         }
+     
         print("Starting conversation fetch...")
         let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
         DatabaseManager.shared.getAllConverssations(for: safeEmail, completion: {[weak self] result in
@@ -54,8 +55,7 @@ final class ConversationsViewController: UIViewController {
                 guard !conversations.isEmpty else {
                     return
                 }
-                self?.conversations = conversations
-                
+                self?.conversations = conversations.sorted(by: { $0.latestMessage.date > $1.latestMessage.date })
                 DispatchQueue.main.async {
                     self?.tableView.reloadData()
                 }
