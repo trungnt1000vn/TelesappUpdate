@@ -144,7 +144,7 @@ final class RegisterViewController: UIViewController {
               let email = emailField.text,
               let password = passwordField.text,!email.isEmpty,!password.isEmpty,!firstName.isEmpty,!lastName.isEmpty,password.count >= 6
         else{
-            alertUserLoginError()
+           
             return
         }
         spinner.show(in: view)
@@ -170,6 +170,16 @@ final class RegisterViewController: UIViewController {
                     print("Error creating user")
                     return
                 }
+                let user = Auth.auth().currentUser
+                    user?.sendEmailVerification(completion: { error in
+                        if let error = error {
+                            print("Error sending verification email: \(error.localizedDescription)")
+                            return
+                        }
+                        DispatchQueue.main.async {
+                            strongSelf.alertVerify(message: "A verification email has been sent to your email address. Please verify your account before logging in.")
+                        }
+                    })
                 let chatUser = ChatAppUser(firstName: firstName, lastName: lastName, emailAddress: email)
                 DatabaseManager.shared.insertUser(with: chatUser, completion: {success in
                     if success{
@@ -191,16 +201,24 @@ final class RegisterViewController: UIViewController {
                         
                     }
                 })
-                strongSelf.navigationController?.dismiss(animated: true,completion: nil)
             })
         })
         
     }
     func alertUserLoginError(message: String = "Please enter all information to create a new account"){
         let alert = UIAlertController(title: "Woops", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title:"Dismiss", style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title:"Dismiss", style: .cancel, handler: { acting in
+            self.navigationController?.popToRootViewController(animated: true)
+        }))
         present(alert, animated: true)
         
+    }
+    func alertVerify(message: String){
+        let alert = UIAlertController(title: "Registered successfully !", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title:"Dismiss", style: .cancel, handler: { acting in
+            self.navigationController?.popToRootViewController(animated: true)
+        }))
+        present(alert, animated: true)
     }
     @objc private func didTapRegister(){
         let vc = RegisterViewController()

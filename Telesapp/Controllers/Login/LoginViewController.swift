@@ -78,7 +78,7 @@ final class LoginViewController: UIViewController {
         title = "Login"
         
         view.backgroundColor = .systemBackground
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Register", style: .done, target: self , action: #selector(didTapLogin))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Register", style: .done, target: self , action: #selector(didTapRegister))
         // Do any additional setup after loading the view.
         loginButton.addTarget(self, action: #selector(loginButtonTapped), for: . touchUpInside)
         forgotButton.addTarget(self, action: #selector(didTapForgot), for: . touchUpInside)
@@ -135,29 +135,33 @@ final class LoginViewController: UIViewController {
                 return
             }
             let user = result.user
-            
-            let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
-            DatabaseManager.shared.getDataFor(path: safeEmail, completion: {[weak self] result in
-                switch result {
-                case .success(let data):
-                    guard let userData = data as? [String: Any],
-                          let firstName = userData["first name"] as? String,
-                          let lastName = userData["last_name"] as? String
-                    else{
-                        print("Failed to get the name")
-                        return
+            if user.isEmailVerified{
+                let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
+                DatabaseManager.shared.getDataFor(path: safeEmail, completion: {[weak self] result in
+                    switch result {
+                    case .success(let data):
+                        guard let userData = data as? [String: Any],
+                              let firstName = userData["first name"] as? String,
+                              let lastName = userData["last_name"] as? String
+                        else{
+                            print("Failed to get the name")
+                            return
+                        }
+                        UserDefaults.standard.set("\(firstName) \(lastName)", forKey: "name")
+                    case .failure(let error):
+                        print ("Failed to read data with error \(error)")
                     }
-                    UserDefaults.standard.set("\(firstName) \(lastName)", forKey: "name")
-                case .failure(let error):
-                    print ("Failed to read data with error \(error)")
-                }
-            })
-            
-            
-            UserDefaults.standard.set(email, forKey: "email")
-            
-            print("Logged in user : \(user)")
-            strongSelf.navigationController?.dismiss(animated: true,completion: nil)
+                })
+                
+                
+                UserDefaults.standard.set(email, forKey: "email")
+                
+                print("Logged in user : \(user)")
+                strongSelf.navigationController?.dismiss(animated: true,completion: nil)
+            }
+            else {
+                strongSelf.alertUserVerified()
+            }
         })}
     func alerUserLoginError(){
         let alert = UIAlertController(title: "Woops", message: "Please enter all information to login ", preferredStyle: .alert)
@@ -165,7 +169,12 @@ final class LoginViewController: UIViewController {
         present(alert, animated: true)
         
     }
-    @objc private func didTapLogin(){
+    func alertUserVerified(){
+        let alert = UIAlertController(title: "Wait !!!", message: "Please verify your email address before login. Check your email for vefication link ", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title:"Dismiss", style: .cancel, handler: nil))
+        present(alert, animated: true)
+    }
+    @objc private func didTapRegister(){
         let vc = RegisterViewController()
         vc.title = "Create Account"
         navigationController?.pushViewController(vc, animated: true)

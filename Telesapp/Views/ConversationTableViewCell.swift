@@ -58,7 +58,6 @@ class ConversationTableViewCell: UITableViewCell {
     }
     override func layoutSubviews() {
         super.layoutSubviews()
-        
         userImageView.frame = CGRect(x: 10, y: 10, width: 100, height: 100)
         userNameLabel.frame = CGRect(x: userImageView.right + 10, y: 10, width: contentView.width - 20 - userImageView.width, height: (contentView.height-20)/2)
         userMessageLabel.frame = CGRect(x: userImageView.right + 10, y: userNameLabel.bottom + 10, width: contentView.width - 100 - userImageView.width, height: (contentView.height-50)/2)
@@ -66,8 +65,12 @@ class ConversationTableViewCell: UITableViewCell {
         iconImage.frame = CGRect(x: userMessageLabel.right + 50, y: 28, width: 10, height: 10)
     }
     public func configure(with model: Conversation) {
-        
-        userMessageLabel.text  = model.latestMessage.text
+        guard let userEmail = UserDefaults.standard.value(forKey: "email") as? String
+        else {
+            return
+        }
+        let safeEmail = DatabaseManager.safeEmail(emailAddress: userEmail)
+        userMessageLabel.text  = "You: \(model.latestMessage.text)"
         userNameLabel.text = model.name
         messageTime.text = model.latestMessage.time
         if(model.latestMessage.isRead == false){
