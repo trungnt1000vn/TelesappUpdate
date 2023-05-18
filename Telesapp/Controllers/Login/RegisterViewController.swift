@@ -114,7 +114,6 @@ final class RegisterViewController: UIViewController {
         scrollView.addSubview(registerButton)
         
         imageView.isUserInteractionEnabled = true
-        imageView.isUserInteractionEnabled = true
         let gesture = UITapGestureRecognizer(target: self, action: #selector(didTapChangeProfilePic))
         imageView.addGestureRecognizer(gesture)
     }

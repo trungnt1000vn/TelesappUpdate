@@ -70,10 +70,16 @@ class ConversationTableViewCell: UITableViewCell {
             return
         }
         let safeEmail = DatabaseManager.safeEmail(emailAddress: userEmail)
-        userMessageLabel.text  = "You: \(model.latestMessage.text)"
+        if(model.latestMessage.sender == safeEmail){
+            userMessageLabel.text  = "You: \(model.latestMessage.text)"
+        }
+        else
+        {
+            userMessageLabel.text  = (model.latestMessage.text)
+        }
         userNameLabel.text = model.name
         messageTime.text = model.latestMessage.time
-        if(model.latestMessage.isRead == false){
+        if(model.latestMessage.isRead == false && model.latestMessage.sender != safeEmail){
             userMessageLabel.font = .systemFont(ofSize: 19,weight: .bold)
             messageTime.font = .systemFont(ofSize: 12, weight: .bold)
             iconImage.isHidden = false

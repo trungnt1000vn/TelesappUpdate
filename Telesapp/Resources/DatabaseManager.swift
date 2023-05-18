@@ -161,6 +161,7 @@ extension DatabaseManager {
             let messageDate = firstMessage.sentDate
             let dateString = ChatViewController.dateFormatter.string(from: messageDate)
             let timeString = ChatViewController.dateFormatter1.string(from: messageDate)
+            let senderString = safeEmail
             var message = ""
             switch firstMessage.kind{
                 
@@ -193,6 +194,7 @@ extension DatabaseManager {
                 "latest_message": [
                     "date":dateString,
                     "time":timeString,
+                    "sender":senderString,
                     "message": message,
                     "is_read": false
                 ]
@@ -206,6 +208,7 @@ extension DatabaseManager {
                 "latest_message": [
                     "date":dateString,
                     "time":timeString,
+                    "sender":senderString,
                     "message": message,
                     "is_read": false
                 ]
@@ -271,6 +274,7 @@ extension DatabaseManager {
         let messageDate = firstMessage.sentDate
         let dateString = ChatViewController.dateFormatter.string(from: messageDate)
         let timeString = ChatViewController.dateFormatter1.string(from: messageDate)
+        
         var message = ""
         switch firstMessage.kind{
             
@@ -340,13 +344,14 @@ extension DatabaseManager {
                       let latestMessage = dictionary["latest_message"] as? [String: Any],
                       let date = latestMessage["date"] as? String,
                       let time = latestMessage["time"] as? String,
+                      let sender = latestMessage["sender"] as? String,
                       let message = latestMessage["message"] as? String,
                       let isRead = latestMessage["is_read"] as? Bool else {
                     return nil
                 }
                 
                 
-                let latestMessageObject = LatestMessage(date: date, time: time, text: message, isRead: isRead)
+                let latestMessageObject = LatestMessage(date: date, time: time, sender: sender, text: message, isRead: isRead)
                 
                 return Conversation(id: conversationId, name: name, otherUserEmail: otherUserEmail, latestMessage: latestMessageObject)
             })
@@ -444,6 +449,7 @@ extension DatabaseManager {
             let messageDate = newMessage.sentDate
             let dateString = ChatViewController.dateFormatter.string(from: messageDate)
             let timeString = ChatViewController.dateFormatter1.string(from: messageDate)
+            let sender = currentEmail
             var message = ""
             switch newMessage.kind{
                 
@@ -505,6 +511,7 @@ extension DatabaseManager {
                     let updatedValue: [String: Any] = [
                         "date":dateString,
                         "time":timeString,
+                        "sender":sender,
                         "is_read": false,
                         "message": message
                     ]
@@ -562,6 +569,7 @@ extension DatabaseManager {
                             let updatedValue: [String: Any] = [
                                 "date":dateString,
                                 "time":timeString,
+                                "sender":sender,
                                 "is_read": false,
                                 "message": message
                             ]
@@ -734,5 +742,8 @@ struct ChatAppUser{
     }
     var profilePictureFileName: String{
         return "\(safeEmail)_profile_picture.png"
+    }
+    var coverPictureFileName: String {
+        return "\(safeEmail)_cover_photo.png"
     }
 }

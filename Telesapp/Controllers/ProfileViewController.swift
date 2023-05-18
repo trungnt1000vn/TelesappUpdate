@@ -12,120 +12,166 @@ import FirebaseAuth
 import SDWebImage
 
 
-final class ProfileViewController : UIViewController{
+final class ProfileViewController : UIViewController, UINavigationControllerDelegate, UIImagePickerControllerDelegate{
     
-    @IBOutlet weak var tableView: UITableView!
-    var data = [ProfileViewModel]()
+    @IBOutlet weak var coverPhoto: UIImageView!
+    
+    @IBOutlet weak var avaPhoto: UIImageView!
+    
+    @IBOutlet weak var logoutButton: UIButton!
+    
+    
+    @IBAction func logoutTapped(_ sender: Any) {
+        UserDefaults.standard.set(nil, forKey: "email")
+        UserDefaults.standard.set(nil, forKey: "name")
+        let actionSheet = UIAlertController(title: "Are you sure want to log out ?", message: "", preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: "Log Out", style: .destructive,handler: {[weak self] _ in
+            guard let strongSelf = self else{
+                return
+            }
+            do {
+                try FirebaseAuth.Auth.auth().signOut()
+                
+                let vc = LoginViewController()
+                let nav = UINavigationController(rootViewController: vc)
+                nav.modalPresentationStyle = .fullScreen
+                strongSelf.present(nav,animated: false)
+            }
+            catch {
+                print("Failed to log out")
+            }
+        }))
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel,handler: nil))
+        self.present(actionSheet,animated: true)
+    }
+    
+    @IBOutlet weak var nameField: UITextField!
+    
+    @IBOutlet weak var emailField: UITextField!
+    
+    @IBOutlet weak var nameLabel: UILabel!
+    
+    @IBOutlet weak var emailLabel: UILabel!
+    
+    @IBOutlet weak var coverButton: UIImageView!
+    
+    
+    
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        avaPhoto.layer.cornerRadius = 50
+        avaPhoto.contentMode = .scaleAspectFill
+        coverPhoto.contentMode = .scaleAspectFill
+        coverPhoto.alpha = 0.5
+        logoutButton.layer.cornerRadius = 20
+        emailField.layer.borderWidth = 1
+        emailField.layer.borderColor = CGColor(red: 1, green: 1, blue: 1, alpha: 1)
+        emailField.layer.cornerRadius = 25
+        nameField.layer.borderWidth = 1
+        nameField.layer.borderColor = CGColor(red: 1, green: 1, blue: 1, alpha: 1)
+        nameField.layer.cornerRadius = 25
+        nameLabel.frame = CGRect(x: nameField.left + 16, y: nameField.top  , width: nameField.width - 32, height: nameField.height)
+        emailLabel.frame = CGRect(x: emailField.left + 16, y: emailField.top  , width: emailField.width - 32, height: emailField.height)
         
-        data.append(ProfileViewModel(viewModelType: .info, title: "Name", handler: nil))
-        data.append(ProfileViewModel(viewModelType: .email, title: "Email", handler: nil))
+        coverButton.isUserInteractionEnabled = true
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(didTapChangeCoverPhoto))
+        coverButton.addGestureRecognizer(gesture)
         
-        data.append(ProfileViewModel(viewModelType: .logout, title: "Log Out", handler: {
-            [weak self] in
-            guard let strongSelf = self else {
-                return
-            }
-            
-            UserDefaults.standard.set(nil, forKey: "email")
-            UserDefaults.standard.set(nil, forKey: "name")
-            let actionSheet = UIAlertController(title: "Are you sure want to log out ?", message: "", preferredStyle: .actionSheet)
-            actionSheet.addAction(UIAlertAction(title: "Log Out", style: .destructive,handler: {[weak self] _ in
-                guard let strongSelf = self else{
-                    return
-                }
-                do {
-                    try FirebaseAuth.Auth.auth().signOut()
-                    
-                    let vc = LoginViewController()
-                    let nav = UINavigationController(rootViewController: vc)
-                    nav.modalPresentationStyle = .fullScreen
-                    strongSelf.present(nav,animated: false)
-                }
-                catch {
-                    print("Failed to log out")
-                }
-            }))
-            actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel,handler: nil))
-            strongSelf.present(actionSheet,animated: true)
-            
-
-        }))
-        tableView.register(ProfileTableViewCell.self, forCellReuseIdentifier: ProfileTableViewCell.identifier)
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-        tableView.delegate = self
-        tableView.dataSource = self
-        tableView.tableHeaderView = createTableHeader()
-    }
-    
-    func createTableHeader() -> UIView? {
+        
         guard let email = UserDefaults.standard.value(forKey: "email")as? String else {
-            return nil
+            return
         }
+        guard let name = UserDefaults.standard.value(forKey: "name")as? String
+        else {
+            return
+        }
+        nameLabel.text = "Name : \(name)"
+        emailLabel.text = "Email : \(email)"
         let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
         let filename = safeEmail + "_profile_picture.png"
-        
+        let coverPhotoname = safeEmail + "_cover_photo.png"
         let path = "images/"+filename
-        
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: self.view.width, height: 300))
-        headerView.backgroundColor = .link
-        
-        let imageView = UIImageView(frame: CGRect(x: (headerView.width-150) / 2, y: 75, width: 150, height: 150))
-        
-        imageView.contentMode = .scaleAspectFill
-        imageView.backgroundColor = .white
-        imageView.layer.borderColor = UIColor.white.cgColor
-        imageView.layer.borderWidth = 3
-        imageView.layer.masksToBounds = true
-        imageView.layer.cornerRadius = imageView.width/2
-        headerView.addSubview(imageView)
-        
-        StorageManager.shared.downloadURL(for: path, completion: {result in
+        let pathCover = "coverphotos/"+coverPhotoname
+        StorageManager.shared.downloadURL(for: path, completion: { result in
             switch result{
             case .success(let url):
-                imageView.sd_setImage(with: url, completed: nil)
+                self.avaPhoto.sd_setImage(with: url, completed: nil)
             case .failure(let error):
                 print("Failed to get download url : \(error)")
             }
         })
-        return headerView
+        StorageManager.shared.downloadURL(for: pathCover, completion: { result in
+            switch result{
+            case .success(let url):
+                self.coverPhoto.sd_setImage(with: url, completed: nil)
+            case .failure(let error):
+                print("Failed to get cover photo: \(error)")
+            }
+        })
+    }
+    @objc func didTapChangeCoverPhoto(){
+        presentPhotoActionSheet()
     }
 }
-extension ProfileViewController : UITableViewDelegate, UITableViewDataSource{
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return data.count
-    }
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let viewModel = data[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: ProfileTableViewCell.identifier, for: indexPath) as! ProfileTableViewCell
-        cell.setUp(with: viewModel)
-        return cell
-    }
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
+extension ProfileViewController{
+    
+    func presentPhotoActionSheet(){
+        let actionSheet = UIAlertController(title: "Cover Photo", message: "How would you like to select your picture ?", preferredStyle: .actionSheet)
         
-                data[indexPath.row].handler?()
+        actionSheet.addAction((UIAlertAction(title: "Cancel", style: .cancel,handler: nil)))
+        actionSheet.addAction((UIAlertAction(title: "Take Photo", style: .default,handler: {[weak self] _ in
+            self?.presentCamera()
+            
+        })))
+        actionSheet.addAction((UIAlertAction(title: "Choose Photo", style: .default,handler: { [weak self] _ in
+            self?.presentPhotoPicker()
+        })))
+        present(actionSheet, animated: true)
+    }
+    func presentPhotoPicker(){
+        let vc = UIImagePickerController()
+        vc.sourceType = .photoLibrary
+        vc.delegate = self
+        vc.allowsEditing = true
+        vc.modalPresentationStyle = .fullScreen
+        present(vc,animated: true)
+    }
+    func presentCamera(){
+        let vc = UIImagePickerController()
+        vc.sourceType = .camera
+        vc.delegate = self
+        vc.allowsEditing = true
+        present(vc,animated: true)
+    }
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        picker.dismiss(animated: true, completion: nil)
+        print(info)
+        guard let selectedImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage else{
+            return
         }
+        self.coverPhoto.image = selectedImage
+        guard let email = UserDefaults.standard.value(forKey: "email") as? String else {
+            return
+        }
+        let safeEmail = DatabaseManager.safeEmail(emailAddress: email)
+        let fileName = "\(safeEmail)_cover_photo.png"
+        guard let image = self.coverPhoto.image, let data = image.pngData() else {
+            return
+        }
+        StorageManager.shared.uploadCoverPicture(with: data, fileName: fileName, completion: { result in
+            switch result {
+            case .success(let downloadUrl):
+                UserDefaults.standard.set(downloadUrl, forKey: "cover_photo_url")
+                print(downloadUrl)
+            case .failure(let error):
+                print("Storage manager error \(error)")
+            }
+        })
+    }
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true, completion: nil)
+    }
 }
 
-class ProfileTableViewCell: UITableViewCell{
-    static let identifier = "ProfileTableViewCell"
-    public func setUp(with viewModel: ProfileViewModel){
-        switch viewModel.viewModelType {
-        case .info:
-            textLabel?.textAlignment = .left
-            textLabel?.text = "Name : \(UserDefaults.standard.value(forKey: "name") as? String ?? "No Name")"
-        case .email:
-            textLabel?.textAlignment = .left
-            textLabel?.text = "Email : \(UserDefaults.standard.value(forKey: "email") as? String ?? "Error Email")"
-        case .logout:
-            textLabel?.text = "Log Out"
-            textLabel?.textColor = .red
-            textLabel?.textAlignment = .center
-        
-        }
-    }
-}

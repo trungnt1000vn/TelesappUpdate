@@ -15,6 +15,7 @@ struct Conversation {
 struct LatestMessage{
     var date: String
     var time: String
+    var sender: String
     var text: String
     var isRead: Bool
 }
